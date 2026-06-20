@@ -1,6 +1,6 @@
 python-telegram-bot==20.7
-flask==3.0.0
-werkzeug==3.0.1
+flask==2.3.3
+werkzeug==2.3.8
 selenium==4.15.2
 webdriver-manager==4.0.1
 fake-useragent==1.4.0
