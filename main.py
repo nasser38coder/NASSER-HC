@@ -57,9 +57,11 @@ def help_command(update, context):
 def submit_report(update, context):
     query = update.callback_query
     query.answer()
-    keyboard = [[InlineKeyboardButton("👤 مستخدم", callback_data="report_type_user")],
-                [InlineKeyboardButton("📄 محتوى", callback_data="report_type_content")],
-                [InlineKeyboardButton("🔙 رجوع", callback_data="back")]]
+    keyboard = [
+        [InlineKeyboardButton("👤 مستخدم", callback_data="report_type_user")],
+        [InlineKeyboardButton("📄 محتوى", callback_data="report_type_content")],
+        [InlineKeyboardButton("🔙 رجوع", callback_data="back")]
+    ]
     query.edit_message_text("📝 اختر نوع البلاغ:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 def report_type_callback(update, context):
@@ -98,9 +100,11 @@ def handle_message(update, context):
 def create_accounts(update, context):
     query = update.callback_query
     query.answer()
-    keyboard = [[InlineKeyboardButton("5 حسابات", callback_data="create_5")],
-                [InlineKeyboardButton("10 حسابات", callback_data="create_10")],
-                [InlineKeyboardButton("🔙 رجوع", callback_data="back")]]
+    keyboard = [
+        [InlineKeyboardButton("5 حسابات", callback_data="create_5")],
+        [InlineKeyboardButton("10 حسابات", callback_data="create_10")],
+        [InlineKeyboardButton("🔙 رجوع", callback_data="back")]
+    ]
     query.edit_message_text("🔧 كم حساب تريد إنشاءه؟", reply_markup=InlineKeyboardMarkup(keyboard))
 
 def create_accounts_callback(update, context):
@@ -162,7 +166,7 @@ def home():
 def webhook():
     try:
         update = Update.de_json(request.get_json(force=True), bot)
-        dispatcher = Dispatcher(bot, None, workers=0)
+        dispatcher = Dispatcher(bot, None, workers=0, use_context=True)
         dispatcher.add_handler(CommandHandler("start", start))
         dispatcher.add_handler(CommandHandler("help", help_command))
         dispatcher.add_handler(CallbackQueryHandler(callback_handler))
@@ -177,10 +181,12 @@ def webhook():
 # ================= تشغيل =================
 
 if __name__ == "__main__":
-    # تعيين Webhook
-    webhook_url = "https://nasser-hc.onrender.com/webhook"
-    bot.set_webhook(webhook_url)
-    logger.info(f"✅ Webhook set to: {webhook_url}")
+    try:
+        webhook_url = "https://nasser-hc.onrender.com/webhook"
+        bot.set_webhook(webhook_url)
+        logger.info(f"✅ Webhook set to: {webhook_url}")
+    except Exception as e:
+        logger.error(f"❌ فشل تعيين Webhook: {e}")
     
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
