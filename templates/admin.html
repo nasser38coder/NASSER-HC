@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Nasser AI - Admin</title>
+    <style>
+        body { font-family: Arial; background: #f0f0f0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; }
+        .header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 30px; border-radius: 15px; }
+        h1 { margin: 0; }
+        .status { background: white; padding: 20px; border-radius: 10px; margin-top: 20px; }
+        .online { color: green; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>⚙️ Nasser AI - Admin Panel</h1>
+        <p>لوحة تحكم البوت</p>
+    </div>
+    <div class="status">
+        <h2>📊 حالة البوت</h2>
+        <p>الحالة: <span class="online">🟢 يعمل</span></p>
+        <p>الإصدار: 2.0</p>
+        <p>تم التحديث: {{ now }}</p>
+    </div>
+</div>
+</body>
+</html>
