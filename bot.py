@@ -4,12 +4,21 @@ import random
 import time
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, CallbackContext
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import Filters
 from telegram.constants import ParseMode
 import config
 from database import Database
 from account_creator import AccountCreator
 from auto_reporter import AutoReporter
+
+# ================= توكن البوت =================
+# 🟢 ضع توكن البوت هنا (من BotFather)
+BOT_TOKEN = "8854067469:AAECoNTDQlnV7V6FAhUnDwsdxbrDeLdYRso"
+
+# 🟢 ضع معرف المشرف هنا (من @userinfobot)
+ADMIN_IDS = [5100562548]
+# =============================================
 
 # تسجيل
 logging.basicConfig(
@@ -26,7 +35,7 @@ reporter = AutoReporter()
 # ================= دوال المساعدة =================
 
 def is_admin(user_id):
-    return user_id in config.ADMIN_IDS
+    return user_id in ADMIN_IDS
 
 def generate_main_menu():
     keyboard = [
@@ -345,13 +354,13 @@ def main():
     try:
         # الطريقة الجديدة (Python-telegram-bot v20+)
         from telegram.ext import Application
-        app = Application.builder().token(config.BOT_TOKEN).build()
+        app = Application.builder().token(BOT_TOKEN).build()
         
         app.add_handler(CommandHandler("start", start))
         app.add_handler(CommandHandler("help", help_command))
         app.add_handler(CallbackQueryHandler(callback_handler))
-        app.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
-        app.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_mass_report))
+        app.add_handler(MessageHandler(Filters.TEXT & ~Filters.COMMAND, handle_message))
+        app.add_handler(MessageHandler(Filters.TEXT & ~Filters.COMMAND, handle_mass_report))
         
         logger.info("🚀 تشغيل البوت (v20)...")
         app.run_polling()
@@ -361,14 +370,14 @@ def main():
         logger.info("🔄 تجربة الطريقة القديمة...")
         
         # الطريقة القديمة (Python-telegram-bot v13)
-        updater = Updater(config.BOT_TOKEN, use_context=True)
+        updater = Updater(BOT_TOKEN, use_context=True)
         dp = updater.dispatcher
         
         dp.add_handler(CommandHandler("start", start))
         dp.add_handler(CommandHandler("help", help_command))
         dp.add_handler(CallbackQueryHandler(callback_handler))
-        dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
-        dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_mass_report))
+        dp.add_handler(MessageHandler(Filters.TEXT & ~Filters.COMMAND, handle_message))
+        dp.add_handler(MessageHandler(Filters.TEXT & ~Filters.COMMAND, handle_mass_report))
         
         updater.start_polling()
         updater.idle()
