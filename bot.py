@@ -342,16 +342,42 @@ async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ================= التشغيل =================
 
 def main():
-    app = Application.builder().token(config.BOT_TOKEN).build()
-    
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("help", help_command))
-    app.add_handler(CallbackQueryHandler(callback_handler))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mass_report))
-    
-    logger.info("🚀 تشغيل البوت...")
-    app.run_polling()
+    try:
+        # محاولة تشغيل بالإصدار الجديد
+        app = Application.builder().token(config.BOT_TOKEN).build()
+        
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CommandHandler("help", help_command))
+        app.add_handler(CallbackQueryHandler(callback_handler))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mass_report))
+        
+        logger.info("🚀 تشغيل البوت...")
+        app.run_polling()
+        
+    except Exception as e:
+        logger.error(f"❌ خطأ في التشغيل: {e}")
+        # محاولة بديلة
+        try:
+            from telegram.ext import Updater
+            import telegram.ext as tg_ext
+            
+            # طريقة قديمة
+            updater = Updater(config.BOT_TOKEN, use_context=True)
+            dp = updater.dispatcher
+            
+            dp.add_handler(CommandHandler("start", start))
+            dp.add_handler(CommandHandler("help", help_command))
+            dp.add_handler(CallbackQueryHandler(callback_handler))
+            dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+            dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mass_report))
+            
+            logger.info("🚀 تشغيل البوت (طريقة بديلة)...")
+            updater.start_polling()
+            updater.idle()
+            
+        except Exception as e2:
+            logger.error(f"❌ فشل التشغيل تماماً: {e2}")
 
 if __name__ == "__main__":
     main()
