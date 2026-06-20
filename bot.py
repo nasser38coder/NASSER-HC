@@ -36,20 +36,13 @@ def generate_main_menu():
         [InlineKeyboardButton("📤 إرسال بلاغات جماعية", callback_data="mass_report")],
         [InlineKeyboardButton("❓ مساعدة", callback_data="help")],
     ]
-    if is_admin(update_effective_user()):
-        keyboard.append([InlineKeyboardButton("⚙️ لوحة التحكم", callback_data="admin_panel")])
     return InlineKeyboardMarkup(keyboard)
-
-def update_effective_user():
-    # Temporary fix for menu generation
-    return {'id': config.ADMIN_IDS[0]}
 
 # ================= أوامر البوت =================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     
-    # تسجيل المستخدم
     db.add_user({
         'user_id': user.id,
         'username': user.username or "N/A",
@@ -237,7 +230,6 @@ async def create_accounts_callback(update: Update, context: ContextTypes.DEFAULT
         parse_mode=ParseMode.MARKDOWN
     )
     
-    # إنشاء الحسابات
     accounts = creator.create_bulk(count)
     
     if accounts:
@@ -360,5 +352,6 @@ def main():
     
     logger.info("🚀 تشغيل البوت...")
     app.run_polling()
+
 if __name__ == "__main__":
     main()
