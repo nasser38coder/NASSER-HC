@@ -4,7 +4,7 @@ import random
 import time
 from datetime import datetime
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters, CallbackContext
 from telegram.constants import ParseMode
 import config
 from database import Database
@@ -40,7 +40,7 @@ def generate_main_menu():
 
 # ================= أوامر البوت =================
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def start(update, context):
     user = update.effective_user
     
     db.add_user({
@@ -63,13 +63,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 اختر أحد الأزرار أدناه للبدء.
 """
     
-    await update.message.reply_text(
+    update.message.reply_text(
         welcome_text,
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=generate_main_menu()
     )
 
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def help_command(update, context):
     help_text = """
 ❓ *المساعدة*
 
@@ -88,13 +88,13 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 ⚠️ *تنبيه:* للاستخدام الشخصي فقط!
 """
-    await update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
+    update.message.reply_text(help_text, parse_mode=ParseMode.MARKDOWN)
 
 # ================= دوال الإبلاغ =================
 
-async def submit_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def submit_report(update, context):
     query = update.callback_query
-    await query.answer()
+    query.answer()
     
     keyboard = [
         [InlineKeyboardButton("👤 مستخدم", callback_data="report_type_user")],
@@ -104,15 +104,15 @@ async def submit_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("🔙 رجوع", callback_data="back")]
     ]
     
-    await query.edit_message_text(
+    query.edit_message_text(
         "📝 *اختر نوع البلاغ:*",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-async def report_type_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def report_type_callback(update, context):
     query = update.callback_query
-    await query.answer()
+    query.answer()
     
     report_type = query.data.replace("report_type_", "")
     context.user_data['report_type'] = report_type
@@ -125,35 +125,35 @@ async def report_type_callback(update: Update, context: ContextTypes.DEFAULT_TYP
         [InlineKeyboardButton("🔙 رجوع", callback_data="back")]
     ]
     
-    await query.edit_message_text(
+    query.edit_message_text(
         f"✅ النوع: *{report_type}*\n\n"
         f"📱 *اختر المنصة:*",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-async def platform_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def platform_callback(update, context):
     query = update.callback_query
-    await query.answer()
+    query.answer()
     
     platform = query.data.replace("platform_", "")
     context.user_data['target_platform'] = platform
     context.user_data['step'] = 'username'
     
-    await query.edit_message_text(
+    query.edit_message_text(
         f"✅ المنصة: *{platform}*\n\n"
         f"✏️ *أرسل اسم المستخدم المستهدف:*\n"
         f"(بدون @)",
         parse_mode=ParseMode.MARKDOWN
     )
 
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def handle_message(update, context):
     user_id = update.effective_user.id
     text = update.message.text
     step = context.user_data.get('step')
     
     if not step:
-        await update.message.reply_text(
+        update.message.reply_text(
             "استخدم الأزرار للتنقل.",
             reply_markup=generate_main_menu()
         )
@@ -163,7 +163,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data['target_username'] = text.strip()
         context.user_data['step'] = 'description'
         
-        await update.message.reply_text(
+        update.message.reply_text(
             f"✅ المستهدف: @{text}\n\n"
             f"✏️ *أرسل وصفاً تفصيلياً:*\n"
             f"(اذكر التفاصيل كاملة)",
@@ -172,9 +172,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     elif step == 'description':
         context.user_data['description'] = text
-        await save_report(update, context)
+        save_report(update, context)
 
-async def save_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def save_report(update, context):
     user = update.effective_user
     
     report_data = {
@@ -191,7 +191,7 @@ async def save_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     context.user_data.clear()
     
-    await update.message.reply_text(
+    update.message.reply_text(
         f"✅ *تم استلام بلاغك!*\n\n"
         f"📋 رقم البلاغ: `#{report_id}`\n"
         f"📊 الحالة: قيد المراجعة\n\n"
@@ -202,9 +202,9 @@ async def save_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ================= دوال إنشاء الحسابات =================
 
-async def create_accounts(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def create_accounts(update, context):
     query = update.callback_query
-    await query.answer()
+    query.answer()
     
     keyboard = [
         [InlineKeyboardButton("5 حسابات", callback_data="create_5")],
@@ -213,19 +213,19 @@ async def create_accounts(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("🔙 رجوع", callback_data="back")]
     ]
     
-    await query.edit_message_text(
+    query.edit_message_text(
         "🔧 *كم حساب تريد إنشاءه؟*",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
 
-async def create_accounts_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def create_accounts_callback(update, context):
     query = update.callback_query
-    await query.answer()
+    query.answer()
     
     count = int(query.data.replace("create_", ""))
     
-    await query.edit_message_text(
+    query.edit_message_text(
         f"🔄 جاري إنشاء {count} حساب...\n⏳ قد يستغرق بضع دقائق",
         parse_mode=ParseMode.MARKDOWN
     )
@@ -233,7 +233,7 @@ async def create_accounts_callback(update: Update, context: ContextTypes.DEFAULT
     accounts = creator.create_bulk(count)
     
     if accounts:
-        await query.edit_message_text(
+        query.edit_message_text(
             f"✅ *تم إنشاء {len(accounts)} حساب!*\n\n"
             f"📁 تم حفظها في: `accounts.txt`\n"
             f"🔹 استخدمها للإبلاغ",
@@ -244,7 +244,7 @@ async def create_accounts_callback(update: Update, context: ContextTypes.DEFAULT
             ])
         )
     else:
-        await query.edit_message_text(
+        query.edit_message_text(
             "❌ فشل إنشاء الحسابات. حاول مرة أخرى.",
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔙 رجوع", callback_data="back")]
@@ -253,14 +253,14 @@ async def create_accounts_callback(update: Update, context: ContextTypes.DEFAULT
 
 # ================= دوال الإبلاغ الجماعي =================
 
-async def mass_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def mass_report(update, context):
     query = update.callback_query
-    await query.answer()
+    query.answer()
     
     accounts = creator.load_accounts()
     
     if not accounts:
-        await query.edit_message_text(
+        query.edit_message_text(
             "❌ *لا توجد حسابات!*\n\n"
             "أنشئ حسابات أولاً باستخدام 'إنشاء حسابات'",
             parse_mode=ParseMode.MARKDOWN,
@@ -271,7 +271,7 @@ async def mass_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return
     
-    await query.edit_message_text(
+    query.edit_message_text(
         f"📤 *إرسال بلاغات جماعية*\n\n"
         f"👥 الحسابات المتاحة: {len(accounts)}\n"
         f"✏️ *أرسل اسم المستخدم المستهدف:*",
@@ -279,10 +279,10 @@ async def mass_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     context.user_data['action'] = 'mass_report_target'
 
-async def handle_mass_report(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def handle_mass_report(update, context):
     target = update.message.text.strip()
     
-    await update.message.reply_text(
+    update.message.reply_text(
         f"🔄 جاري إرسال البلاغات لـ @{target}...\n⏳ قد يستغرق بضع دقائق",
         parse_mode=ParseMode.MARKDOWN
     )
@@ -292,7 +292,7 @@ async def handle_mass_report(update: Update, context: ContextTypes.DEFAULT_TYPE)
     success = sum(1 for r in results if r.get('status') == 'success')
     failed = len(results) - success
     
-    await update.message.reply_text(
+    update.message.reply_text(
         f"✅ *اكتمل الإرسال!*\n\n"
         f"📊 النتائج:\n"
         f"• ✅ نجح: {success}\n"
@@ -304,11 +304,11 @@ async def handle_mass_report(update: Update, context: ContextTypes.DEFAULT_TYPE)
 
 # ================= دوال العودة =================
 
-async def back_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def back_handler(update, context):
     query = update.callback_query
-    await query.answer()
+    query.answer()
     
-    await query.edit_message_text(
+    query.edit_message_text(
         "🤖 *القائمة الرئيسية*\n\nاختر الإجراء المناسب:",
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=generate_main_menu()
@@ -316,68 +316,62 @@ async def back_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ================= معالج الأزرار =================
 
-async def callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+def callback_handler(update, context):
     query = update.callback_query
     data = query.data
     
     if data == "submit_report":
-        await submit_report(update, context)
+        submit_report(update, context)
     elif data.startswith("report_type_"):
-        await report_type_callback(update, context)
+        report_type_callback(update, context)
     elif data.startswith("platform_"):
-        await platform_callback(update, context)
+        platform_callback(update, context)
     elif data == "create_accounts":
-        await create_accounts(update, context)
+        create_accounts(update, context)
     elif data.startswith("create_"):
-        await create_accounts_callback(update, context)
+        create_accounts_callback(update, context)
     elif data == "mass_report":
-        await mass_report(update, context)
+        mass_report(update, context)
     elif data == "help":
-        await help_command(update, context)
+        help_command(update, context)
     elif data == "back":
-        await back_handler(update, context)
+        back_handler(update, context)
     else:
-        await query.answer("❌ خيار غير معروف")
+        query.answer("❌ خيار غير معروف")
 
 # ================= التشغيل =================
 
 def main():
     try:
-        # محاولة تشغيل بالإصدار الجديد
+        # الطريقة الجديدة (Python-telegram-bot v20+)
+        from telegram.ext import Application
         app = Application.builder().token(config.BOT_TOKEN).build()
         
         app.add_handler(CommandHandler("start", start))
         app.add_handler(CommandHandler("help", help_command))
         app.add_handler(CallbackQueryHandler(callback_handler))
-        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mass_report))
+        app.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+        app.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_mass_report))
         
-        logger.info("🚀 تشغيل البوت...")
+        logger.info("🚀 تشغيل البوت (v20)...")
         app.run_polling()
         
     except Exception as e:
-        logger.error(f"❌ خطأ في التشغيل: {e}")
-        # محاولة بديلة
-        try:
-            from telegram.ext import Updater
-            import telegram.ext as tg_ext
-            
-            # طريقة قديمة
-            updater = Updater(config.BOT_TOKEN, use_context=True)
-            dp = updater.dispatcher
-            
-            dp.add_handler(CommandHandler("start", start))
-            dp.add_handler(CommandHandler("help", help_command))
-            dp.add_handler(CallbackQueryHandler(callback_handler))
-            dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-            dp.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mass_report))
-            
-            logger.info("🚀 تشغيل البوت (طريقة بديلة)...")
-            updater.start_polling()
-            updater.idle()
-            
-        except Exception as e2:
-            logger.error(f"❌ فشل التشغيل تماماً: {e2}")
+        logger.warning(f"⚠️ الطريقة الأولى فشلت: {e}")
+        logger.info("🔄 تجربة الطريقة القديمة...")
+        
+        # الطريقة القديمة (Python-telegram-bot v13)
+        updater = Updater(config.BOT_TOKEN, use_context=True)
+        dp = updater.dispatcher
+        
+        dp.add_handler(CommandHandler("start", start))
+        dp.add_handler(CommandHandler("help", help_command))
+        dp.add_handler(CallbackQueryHandler(callback_handler))
+        dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
+        dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_mass_report))
+        
+        updater.start_polling()
+        updater.idle()
 
 if __name__ == "__main__":
     main()
