@@ -359,7 +359,6 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_mass_report))
     
     logger.info("🚀 تشغيل البوت...")
-    app.run_polling(allowed_updates=Update.ALL_TYPES)
-
+    app.run_polling()
 if __name__ == "__main__":
     main()
